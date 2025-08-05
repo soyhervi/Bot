@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel de control para administrar tu bot de Discord">
+    <title>Panel de Control - Bot Discord</title>
+    <!-- 
+      Discord Bot Dashboard v1.5
+      Copyright © 2023 Bot Dashboard
+      License: MIT
+    -->
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #36393f;
+            color: #dcddde;
+        }
+        .discord-blurple {
+            background-color: #5865F2;
+        }
+        .discord-dark {
+            background-color: #36393f;
+        }
+        .discord-light-dark {
+            background-color: #2f3136;
+        }
+        .command-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="flex flex-col h-full">
+        <!-- Header -->
+        <header class="discord-blurple text-white p-4 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b17801e7-9a58-463d-8bd6-181ba0d24f27.png" alt="Logo del bot Discord con las letras DB en blanco sobre fondo azul" class="mr-2 rounded-full">
+                    Discord Bot Manager
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <span id="bot-status" class="px-3 py-1 rounded-full bg-green-500 text-xs font-semibold">Conectado</span>
+                    <button class="px-4 py-2 bg-white text-blurple rounded hover:bg-gray-200 transition">Desconectar</button>
+                    <a href="discord-bot-dashboard.zip" download class="px-4 py-2 discord-blurple text-white rounded hover:bg-blue-600 transition">Descargar</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 discord-light-dark p-4 hidden md:block">
+                <nav>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#dashboard" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">📊</span> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#commands" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">⌨️</span> Comandos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#settings" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">⚙️</span> Configuración
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#logs" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">📋</span> Registros
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#scheduled-messages" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">⏰</span> Mensajes Automáticos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#command-responses" class="flex items-center p-2 rounded hover:bg-gray-700 transition">
+                                <span class="mr-2">💬</span> Respuestas
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="mt-8 pt-4 border-t border-gray-700">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Información del Bot</h3>
+                    <div class="flex items-center mb-2">
+                        <span class="text-gray-400 text-sm mr-2">Versión:</span>
+                        <span>1.0.0</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-400 text-sm mr-2">Servidores:</span>
+                        <span id="server-count">0</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-auto p-6">
+                <!-- Dashboard -->
+                <section id="dashboard" class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="discord-light-dark p-4 rounded-lg shadow">
+                            <h3 class="text-gray-400 text-sm mb-2">Servidores</h3>
+                            <p class="text-2xl font-bold">1</p>
+                        </div>
+                        <div class="discord-light-dark p-4 rounded-lg shadow">
+                            <h3 class="text-gray-400 text-sm mb-2">Usuarios</h3>
+                            <p class="text-2xl font-bold">128</p>
+                        </div>
+                        <div class="discord-light-dark p-4 rounded-lg shadow">
+                            <h3 class="text-gray-400 text-sm mb-2">Uptime</h3>
+                            <p class="text-2xl font-bold">4h 22m</p>
+                        </div>
+                    </div>
+
+                    <div class="discord-light-dark p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Actividad Reciente</h3>
+                        <div class="space-y-3" id="recent-activity">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 mr-3">
+                                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/535d6d40-81de-4547-9a17-a37f0e31d841.png" alt="Avatar de usuario con fondo morado" class="w-8 h-8 rounded-full">
+                                </div>
+                                <div>
+                                    <p class="text-sm"><span class="font-semibold">Usuario123</span> usó el comando <code class="bg-gray-800 px-1 rounded">!help</code></p>
+                                    <p class="text-xs text-gray-400">hace 2 minutos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Commands -->
+                <section id="commands" class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Comandos</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="command-card discord-light-dark p-4 rounded-lg shadow transition duration-300 transform">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full discord-blurple flex items-center justify-center mr-3">
+                                    <span>!</span>
+                                </div>
+                                <h3 class="font-semibold">help</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">Muestra todos los comandos disponibles y cómo usarlos.</p>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="px-2 py-1 bg-gray-800 rounded">General</span>
+                                <code class="px-2 py-1 bg-gray-800 rounded">!help</code>
+                            </div>
+                        </div>
+
+                        <div class="command-card discord-light-dark p-4 rounded-lg shadow transition duration-300 transform">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full discord-blurple flex items-center justify-center mr-3">
+                                    <span>!</span>
+                                </div>
+                                <h3 class="font-semibold">play</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">Reproduce música desde YouTube en un canal de voz.</p>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="px-2 py-1 bg-gray-800 rounded">Música</span>
+                                <code class="px-2 py-1 bg-gray-800 rounded">!play [url o nombre]</code>
+                            </div>
+                        </div>
+
+                        <div class="command-card discord-light-dark p-4 rounded-lg shadow transition duration-300 transform">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full discord-blurple flex items-center justify-center mr-3">
+                                    <span>!</span>
+                                </div>
+                                <h3 class="font-semibold">mod</h3>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">Herramientas de moderación para administradores.</p>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="px-2 py-1 bg-gray-800 rounded">Moderación</span>
+                                <code class="px-2 py-1 bg-gray-800 rounded">!mod [acción]</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-3">Añadir nuevo comando</h3>
+                        <form class="discord-light-dark p-4 rounded-lg shadow">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">Nombre del comando</label>
+                                    <input type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" placeholder="ej. ping">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">Categoría</label>
+                                    <select class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple">
+                                        <option>General</option>
+                                        <option>Música</option>
+                                        <option>Moderación</option>
+                                        <option>Diversión</option>
+                                        <option>Otros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Descripción</label>
+                                <textarea class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" rows="3" placeholder="Qué hace este comando?"></textarea>
+                            </div>
+                            <button type="submit" class="discord-blurple text-white px-4 py-2 rounded hover:bg-blue-600 transition">Guardar Comando</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Settings -->
+                <section id="settings" class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Configuración</h2>
+                    <div class="discord-light-dark p-6 rounded-lg shadow">
+                        <div class="flex space-x-2 mb-4">
+                            <button id="export-btn" type="button" class="discord-blurple text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition">Exportar Config</button>
+                            <button id="import-btn" type="button" class="bg-gray-700 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition">Importar Config</button>
+                        </div>
+                        <form>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Token del Bot</label>
+                                <input type="password" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" placeholder="Introduce tu token aquí">
+                                <p class="text-xs text-gray-500 mt-1">El token es sensible. No lo compartas con nadie.</p>
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Prefijo del Bot</label>
+                                <input type="text" class="w-20 bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" value="!">
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-400 mb-3">Actividad del Bot</label>
+                                <div class="flex items-center space-x-4">
+                                    <select class="bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple">
+                                        <option>Jugando</option>
+                                        <option>Transmitiendo</option>
+                                        <option>Escuchando</option>
+                                        <option>Viendo</option>
+                                    </select>
+                                    <input type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" placeholder="ej. con Discord.js">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="auto-reconnect" class="w-4 h-4 text-blurple rounded bg-gray-800 border-gray-700 focus:ring-blurple">
+                                    <label for="auto-reconnect" class="ml-2 text-sm">Reconexión automática</label>
+                                </div>
+                                <button type="submit" class="discord-blurple text-white px-4 py-2 rounded hover:bg-blue-600 transition">Guardar Configuración</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">Invitar el Bot</h3>
+                        <div class="discord-light-dark p-4 rounded-lg shadow flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p class="mb-2">Invita este bot a tus servidores usando este enlace:</p>
+                                <code class="bg-gray-800 p-2 rounded text-sm block w-full md:w-auto">https://discord.com/oauth2/authorize?client_id=123456789&scope=bot&permissions=8</code>
+                            </div>
+                            <button class="discord-blurple text-white px-4 py-2 rounded hover:bg-blue-600 transition mt-4 md:mt-0">Copiar Enlace</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Logs -->
+                <section id="logs">
+                    <h2 class="text-xl font-semibold mb-4">Registros</h2>
+                    <div class="discord-light-dark rounded-lg shadow overflow-hidden">
+                        <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm font-medium">Nivel de Log:</span>
+                                <select class="bg-gray-800 border border-gray-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blurple">
+                                    <option>Todos</option>
+                                    <option>Info</option>
+                                    <option>Advertencia</option>
+                                    <option>Error</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="text-sm px-3 py-1 bg-gray-800 rounded hover:bg-gray-700">Limpiar Logs</button>
+                            </div>
+                        </div>
+                        <div class="p-4 overflow-auto max-h-64" id="log-content">
+                            <div class="text-sm font-mono space-y-2">
+                                <p class="text-green-400">[12:34:56] INFO: Bot iniciado correctamente</p>
+                                <p class="text-blue-400">[12:35:01] COMMAND: !help ejecutado por Usuario123</p>
+                                <p class="text-yellow-400">[12:36:22] WARN: Reconectando...</p>
+                                <p class="text-green-400">[12:36:25] INFO: Conexión restablecida</p>
+                                <p class="text-green-400">[12:40:18] INFO: Nuevo servidor: Comunidad Tech</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Scheduled Messages -->
+                <section id="scheduled-messages" class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Mensajes Programados</h2>
+                    <div class="discord-light-dark p-4 rounded-lg shadow mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Crear Mensaje Recurrente</h3>
+                        <form class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">Seleccionar Canal</label>
+                                    <select class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple">
+                                        <option>#general</option>
+                                        <option>#anuncios</option>
+                                        <option>#bienvenida</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">Día de la Semana</label>
+                                    <select class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple">
+                                        <option>Lunes</option>
+                                        <option>Martes</option>
+                                        <option>Miércoles</option>
+                                        <option>Jueves</option>
+                                        <option>Viernes</option>
+                                        <option>Sábado</option>
+                                        <option>Domingo</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Hora (HH:MM)</label>
+                                <input type="time" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Mensaje</label>
+                                <textarea class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" rows="4" placeholder="Introduce el mensaje que se enviará automáticamente..."></textarea>
+                            </div>
+                            <button type="submit" class="discord-blurple text-white px-4 py-2 rounded hover:bg-blue-600 transition">Programar Mensaje</button>
+                        </form>
+                    </div>
+
+                    <div class="discord-light-dark p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Mensajes Programados Activos</h3>
+                        <div class="overflow-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="text-left text-xs text-gray-400 border-b border-gray-700">
+                                        <th class="pb-2">Canal</th>
+                                        <th class="pb-2">Día</th>
+                                        <th class="pb-2">Hora</th>
+                                        <th class="pb-2">Mensaje</th>
+                                        <th class="pb-2">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduled-messages-list">
+                                    <!-- Messages will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Command Responses -->
+                <section id="command-responses" class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Respuestas de Comandos</h2>
+                    <div class="discord-light-dark p-4 rounded-lg shadow mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Crear Nueva Respuesta</h3>
+                        <form class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Comando</label>
+                                <div class="flex">
+                                    <span class="bg-gray-800 border border-r-0 border-gray-700 rounded-l px-3 py-2">!</span>
+                                    <input type="text" class="flex-1 bg-gray-800 border border-gray-700 rounded-r px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" placeholder="nombre-del-comando">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-1">Respuesta</label>
+                                <textarea class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blurple" rows="4" placeholder="Introduce la respuesta que dará el bot..."></textarea>
+                            </div>
+                            <button type="submit" class="discord-blurple text-white px-4 py-2 rounded hover:bg-blue-600 transition">Guardar Respuesta</button>
+                        </form>
+                    </div>
+
+                    <div class="discord-light-dark p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Respuestas Existentes</h3>
+                        <div class="overflow-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="text-left text-xs text-gray-400 border-b border-gray-700">
+                                        <th class="pb-2">Comando</th>
+                                        <th class="pb-2">Respuesta</th>
+                                        <th class="pb-2">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="command-responses-list">
+                                    <!-- Responses will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Simulación de datos del bot
+        document.addEventListener('DOMContentLoaded', () => {
+            // Actualizar número de servidores
+            document.getElementById('server-count').textContent = '1';
+            
+            // Simular actividad reciente
+            const activities = [
+                {user: 'Usuario456', command: '!play', time: 'hace 1 minuto'},
+                {user: 'Admin', command: '!mod kick', time: 'hace 5 minutos'},
+                {user: 'NuevoUsuario', command: '!help', time: 'hace 10 minutos'}
+            ];
+            
+            const activityContainer = document.getElementById('recent-activity');
+            
+            activities.forEach(activity => {
+                const activityEl = document.createElement('div');
+                activityEl.className = 'flex items-start';
+                activityEl.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/9f6a54c8-9bf8-40a5-b3ef-135698ef9565.png" alt="Avatar de ${activity.user}" class="w-8 h-8 rounded-full">
+                    </div>
+                    <div>
+                        <p class="text-sm"><span class="font-semibold">${activity.user}</span> usó el comando <code class="bg-gray-800 px-1 rounded">${activity.command}</code></p>
+                        <p class="text-xs text-gray-400">${activity.time}</p>
+                    </div>
+                `;
+                activityContainer.appendChild(activityEl);
+            });
+            
+            // Manejo del botón de copiar enlace de invitación
+            document.querySelector('button:contains("Copiar Enlace")').addEventListener('click', () => {
+                const inviteLink = document.querySelector('code').textContent;
+                navigator.clipboard.writeText(inviteLink)
+                    .then(() => alert('¡Enlace copiado al portapapeles!'))
+                    .catch(err => console.error('Error al copiar: ', err));
+            });
+            
+            // Simulación de conexión
+            const statusIndicator = document.getElementById('bot-status');
+            let isConnected = true;
+            
+            document.querySelector('button:contains("Desconectar")').addEventListener('click', () => {
+                isConnected = !isConnected;
+                
+                if(isConnected) {
+                    statusIndicator.textContent = 'Conectado';
+                    statusIndicator.className = 'px-3 py-1 rounded-full bg-green-500 text-xs font-semibold';
+                    document.querySelector('button:contains("Desconectar")').textContent = 'Desconectar';
+                    
+                    // Añadir log de reconexión
+                    const log = document.createElement('p');
+                    log.className = 'text-green-400';
+                    log.textContent = `[${getCurrentTime()}] INFO: Bot reconectado`;
+                    document.getElementById('log-content').prepend(log);
+                } else {
+                    statusIndicator.textContent = 'Desconectado';
+                    statusIndicator.className = 'px-3 py-1 rounded-full bg-red-500 text-xs font-semibold';
+                    document.querySelector('button:contains("Desconectar")').textContent = 'Conectar';
+                    
+                    // Añadir log de desconexión
+                    const log = document.createElement('p');
+                    log.className = 'text-yellow-400';
+                    log.textContent = `[${getCurrentTime()}] WARN: Bot desconectado`;
+                    document.getElementById('log-content').prepend(log);
+                }
+            });
+            
+            // Sample scheduled messages
+            const scheduledMessages = [
+                { channel: "#general", day: "Lunes", time: "12:00", message: "Recordatorio de reunión semanal" },
+                { channel: "#anuncios", day: "Viernes", time: "18:00", message: "¡Feliz fin de semana a todos!" }
+            ];
+
+            // Sample command responses
+            const commandResponses = [
+                { command: "reglas", response: "Las reglas del servidor están disponibles en #reglas" },
+                { command: "ayuda", response: "Escribe !comandos para ver la lista completa" }
+            ];
+
+            // Render scheduled messages
+            const messagesList = document.getElementById('scheduled-messages-list');
+            scheduledMessages.forEach(msg => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-700';
+                tr.innerHTML = `
+                    <td class="py-3">${msg.channel}</td>
+                    <td class="py-3">${msg.day}</td>
+                    <td class="py-3">${msg.time}</td>
+                    <td class="py-3">${msg.message}</td>
+                    <td class="py-3 space-x-2">
+                        <button class="text-blue-400 hover:text-blue-300">Editar</button>
+                        <button class="text-red-400 hover:text-red-300">Eliminar</button>
+                    </td>
+                `;
+                messagesList.appendChild(tr);
+            });
+
+            // Render command responses
+            const responsesList = document.getElementById('command-responses-list');
+            commandResponses.forEach(res => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-700';
+                tr.innerHTML = `
+                    <td class="py-3">!${res.command}</td>
+                    <td class="py-3">${res.response}</td>
+                    <td class="py-3 space-x-2">
+                        <button class="text-blue-400 hover:text-blue-300">Editar</button>
+                        <button class="text-red-400 hover:text-red-300">Eliminar</button>
+                    </td>
+                `;
+                responsesList.appendChild(tr);
+            });
+
+            // Export configuration function
+            document.getElementById('export-btn').addEventListener('click', () => {
+                const config = {
+                    commands: commandResponses,
+                    scheduledMessages: scheduledMessages,
+                    settings: {
+                        prefix: document.querySelector('[name="prefix"]').value,
+                        autoReconnect: document.getElementById('auto-reconnect').checked
+                    }
+                };
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config));
+                const downloadBtn = document.createElement('a');
+                downloadBtn.setAttribute("href", dataStr);
+                downloadBtn.setAttribute("download", "bot-config.json");
+                downloadBtn.click();
+                
+                Swal.fire(
+                    'Configuración exportada',
+                    'La configuración se ha descargado correctamente',
+                    'success'
+                );
+            });
+
+            // Import configuration function
+            document.getElementById('import-btn').addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = e => { 
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.readAsText(file, 'UTF-8');
+                    
+                    reader.onload = readerEvent => {
+                        const content = JSON.parse(readerEvent.target.result);
+                        // Process imported config...
+                        Swal.fire('Éxito', 'Configuración importada correctamente', 'success');
+                    }
+                }
+                
+                input.click();
+            });
+
+            // Bot connection handlers
+            document.getElementById('connect-bot').addEventListener('click', () => {
+                const botToken = document.querySelector('[type="password"]').value;
+                if (!botToken) {
+                    Swal.fire('Error', 'Debes ingresar el token del bot primero', 'error');
+                    return;
+                }
+                
+                Swal.fire({
+                    title: 'Conectando bot...',
+                    text: 'Estableciendo conexión con Discord',
+                    timer: 2000,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                }).then(() => {
+                    Swal.fire('Éxito', 'Bot conectado correctamente', 'success');
+                    statusIndicator.textContent = 'Conectado';
+                    statusIndicator.className = 'px-3 py-1 rounded-full bg-green-500 text-xs font-semibold';
+                });
+            });
+
+            function getCurrentTime() {
+                const now = new Date();
+                return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            }
+        });
+    </script>
+</body>
+</html>
+
